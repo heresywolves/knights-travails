@@ -11,6 +11,24 @@ class Space {
 class Board {
   constructor() {
     this.spaces = [];
+    this.possibleX = [2, 1, -1, -2, -2, -1, 1, 2];
+    this.possibleY = [1, 2, 2, 1, -1, -2, -2, -1];
+    this.space = (row, column) => {
+      if (this.space.length === 0) {
+        return console.log('Board not generated');
+      }
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          if (
+            this.spaces[i][j].row === row &&
+            this.spaces[i][j].column === column
+          ) {
+            return this.spaces[i][j];
+          }
+        }
+      }
+      console.log('No space found');
+    };
   }
 
   generateBoard() {
@@ -66,14 +84,51 @@ class Board {
     }
     console.log('no such space found');
   }
+
+  isLegal(fromRow, fromColumn, toRow, toColumn) {
+    return (
+      toRow >= 0 &&
+      toRow <= 7 &&
+      toColumn >= 0 &&
+      toColumn <= 7 &&
+      this.space(toRow, toColumn).taken === false &&
+      (() => {
+        let xMove;
+        let yMove;
+        if (fromColumn > toColumn) {
+          xMove = toColumn - fromColumn;
+        } else {
+          xMove = fromColumn - toColumn;
+        }
+        if (fromRow > toRow) {
+          yMove = toRow - fromRow;
+        } else {
+          yMove = fromRow - toRow;
+        }
+        for (let i = 0; i < 8; i++) {
+          if (this.possibleX[i] === xMove && this.possibleY[i] === yMove) {
+            return true;
+          }
+        }
+        return false;
+      })()
+    );
+  }
+
+  getPossibleMoves(row, column, possibleMoves = []) {
+    const space = this.space(row, column);
+    console.log(space);
+  }
 }
 
 const board = new Board();
 board.generateBoard();
 board.logBoard();
-board.move([1, 1]);
-board.move([1, 3]);
-board.move([2, 3]);
-board.move([7, 7]);
+board.move([4, 4]);
 
 board.logBoard();
+
+board.getPossibleMoves(4, 4);
+board.getPossibleMoves(5, 4);
+
+console.log(board.isLegal(4, 4, 3, 2));
