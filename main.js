@@ -117,7 +117,16 @@ class Board {
 
   getPossibleMoves(row, column, possibleMoves = []) {
     const space = this.space(row, column);
-    console.log(space);
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+        const toRow = this.spaces[i][j].row;
+        const toColumn = this.spaces[i][j].column;
+        if (this.isLegal(row, column, toRow, toColumn)) {
+          possibleMoves.push([toColumn, toRow]);
+        }
+      }
+    }
+    return possibleMoves;
   }
 }
 
@@ -128,7 +137,4 @@ board.move([4, 4]);
 
 board.logBoard();
 
-board.getPossibleMoves(4, 4);
-board.getPossibleMoves(5, 4);
-
-console.log(board.isLegal(4, 4, 3, 2));
+console.log(board.getPossibleMoves(7, 4));
