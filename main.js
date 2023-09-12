@@ -1,140 +1,70 @@
-function knightMoves(from, to) {}
+const squareRegistry = new Map();
 
-class Space {
-  constructor() {
-    this.taken = false;
-    this.row = 0;
-    this.column = 0;
-  }
-}
+const ChessSquare = (x, y) => {
+  const xPos = 4;
+  const yPos = 4;
+  let predecessor;
 
-class Board {
-  constructor() {
-    this.spaces = [];
-    this.possibleX = [2, 1, -1, -2, -2, -1, 1, 2];
-    this.possibleY = [1, 2, 2, 1, -1, -2, -2, -1];
-    this.space = (row, column) => {
-      if (this.space.length === 0) {
-        return console.log('Board not generated');
-      }
-      for (let i = 0; i < 8; i++) {
-        for (let j = 0; j < 8; j++) {
-          if (
-            this.spaces[i][j].row === row &&
-            this.spaces[i][j].column === column
-          ) {
-            return this.spaces[i][j];
-          }
-        }
-      }
-      console.log('No space found');
-    };
-  }
+  const KNIGHT_OFFSETS = [
+    [1, 2],
+    [1, -2],
+    [2, 1],
+    [2, -1],
+    [-1, 2],
+    [-1, -2],
+    [-2, 1],
+    [-2, -1],
+  ];
 
-  generateBoard() {
-    for (let i = 0; i < 8; i++) {
-      const row = [];
-      for (let k = 0; k < 8; k++) {
-        const space = new Space();
-        space.row = i;
-        space.column = k;
-        row.push(space);
-      }
-      this.spaces.push(row);
+  const getPredecessor = () => predecessor;
+  const setPredecessor = (newPred) => {
+    predecessor ||= newPred;
+  };
+  const name = () => `${x}, ${y}`;
+
+  // With these two functions we get back objects (moves) that are
+  // legit moves
+  const createKnightMoves = () =>
+    KNIGHT_OFFSETS.map(newSquareFrom).filter(Boolean);
+
+  const newSquareFrom = ([xOffset, yOffset]) => {
+    const [newX, newY] = [xPos + xOffset, yPos + yOffset];
+    if (newX >= 0 && newX < 8 && newY >= 0 && y < 8) {
+      return ChessSquare(newX, newY);
     }
+  };
+
+  if (squareRegistry.has(name())) {
+    return squareRegistry.get(name());
+  }
+  const newSquare = { name, getPredecessor, setPredecessor, createKnightMoves };
+  squareRegistry.set(name(), newSquare);
+  return newSquare;
+};
+
+const knightsTravails = (start, finish) => {
+  squareRegistry.clear();
+
+  const origin = ChessSquare(...start);
+  const target = ChessSquare(...finish);
+
+  const queue = [target];
+  while (queue.includes(origin)) {
+    const currentSqaure = queue.shift();
+
+    const enqueueList = currentSqaure.createKnightMoves();
+    enqueueList.forEach((square) => square.setPredecessor(currentSqaure));
+    queue.push(...enqueueList);
   }
 
-  logBoard() {
-    if (this.spaces.length === 0) {
-      return console.log('No board is generated');
-    }
-    for (let i = 7; i >= 0; i--) {
-      let rowString = `${i}  `;
-      for (let j = 0; j < 8; j++) {
-        if (this.spaces[i][j].taken) {
-          rowString += '[X]  ';
-        } else {
-          rowString += '[ ]  ';
-        }
-      }
-      console.log(rowString);
-      console.log('\n');
-    }
-    console.log('    0    1    2    3    4    5    6    7');
-    console.log('\n');
+  const path = [origin];
+  while (!path.includes(target)) {
+    const nextSquare = path.at(-1).getPredecessor();
+    path.push(nextSquare);
   }
+  console.log(`The shortest path was ${path.length - 1} moves`);
+  console.log('Moves were:');
+  path.forEach((sqaure) => console.log(sqaure.name()));
+};
 
-  move(position) {
-    const column = position[0];
-    const row = position[1];
-    for (let i = 7; i >= 0; i--) {
-      for (let j = 0; j < 8; j++) {
-        if (
-          this.spaces[i][j].row === row &&
-          this.spaces[i][j].column === column
-        ) {
-          if (this.spaces[i][j].taken) {
-            console.log('this space is taken');
-            return;
-          }
-          this.spaces[i][j].taken = true;
-          return;
-        }
-      }
-    }
-    console.log('no such space found');
-  }
-
-  isLegal(fromRow, fromColumn, toRow, toColumn) {
-    return (
-      toRow >= 0 &&
-      toRow <= 7 &&
-      toColumn >= 0 &&
-      toColumn <= 7 &&
-      this.space(toRow, toColumn).taken === false &&
-      (() => {
-        let xMove;
-        let yMove;
-        if (fromColumn > toColumn) {
-          xMove = toColumn - fromColumn;
-        } else {
-          xMove = fromColumn - toColumn;
-        }
-        if (fromRow > toRow) {
-          yMove = toRow - fromRow;
-        } else {
-          yMove = fromRow - toRow;
-        }
-        for (let i = 0; i < 8; i++) {
-          if (this.possibleX[i] === xMove && this.possibleY[i] === yMove) {
-            return true;
-          }
-        }
-        return false;
-      })()
-    );
-  }
-
-  getPossibleMoves(row, column, possibleMoves = []) {
-    const space = this.space(row, column);
-    for (let i = 0; i < 8; i++) {
-      for (let j = 0; j < 8; j++) {
-        const toRow = this.spaces[i][j].row;
-        const toColumn = this.spaces[i][j].column;
-        if (this.isLegal(row, column, toRow, toColumn)) {
-          possibleMoves.push([toColumn, toRow]);
-        }
-      }
-    }
-    return possibleMoves;
-  }
-}
-
-const board = new Board();
-board.generateBoard();
-board.logBoard();
-board.move([4, 4]);
-
-board.logBoard();
-
-console.log(board.getPossibleMoves(7, 4));
+knightsTravails([4, 4], [5, 5]);
